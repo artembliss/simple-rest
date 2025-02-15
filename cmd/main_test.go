@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"rest-api/internal/http/handlers"
 	"strconv"
 	"testing"
 
@@ -17,11 +18,11 @@ func setUpRouter() *gin.Engine{
 		router := gin.Default()
 	
 		// Регистрируем те же маршруты, что и в основном приложении.
-		router.GET("/items", getItemsHandler)
-		router.GET("/items/:id", getItemHandler)
-		router.POST("/items", createItemHandler)
-		router.PUT("/items/:id", updateItemHandler)
-		router.DELETE("/items/:id", deleteItemHandler)
+		router.GET("/items", handlers.GetItemsHandler)
+		router.GET("/items/{id}", handlers.GetItemHandler)
+		router.POST("/items", handlers.CreateItemHandler)
+		router.PUT("/items/{id}", handlers.UpdateItemHandler)
+		router.DELETE("/items/{id}", handlers.DeleteItemHandler)
 		return router
 }
 
@@ -32,7 +33,7 @@ func TestCreateAndGetItem(t *testing.T) {
 	router := setUpRouter()
 
 	// Создаем новый item для теста.
-	newItem := Item{Name: "Test Item", Description: "Test Description"}
+	newItem := handlers.Item{Name: "Test Item", Description: "Test Description"}
 	jsonValue, err := json.Marshal(newItem)
 	if err != nil {
 		t.Fatalf("Error marshaling JSON: %v", err)
@@ -55,18 +56,18 @@ func TestCreateAndGetItem(t *testing.T) {
 	}
 
 	// Декодируем ответ сервера в структуру Item.
-	var createdItem Item
+	var createdItem handlers.Item
 	err = json.Unmarshal(resp.Body.Bytes(), &createdItem)
 	if err != nil {
 		t.Fatalf("Error unmarshaling response: %v", err)
 	}
 	// Проверяем, что созданный item получил непустой ID.
-	if createdItem.Id == 0 {
+	if createdItem.ID == 0 {
 		t.Fatal("Expected non-zero item ID")
 	}
 
 	// Тестируем получение созданного item через GET-запрос.
-	getURL := "/items/" + strconv.Itoa(createdItem.Id)
+	getURL := "/items/" + strconv.Itoa(createdItem.ID)
 	req, err = http.NewRequest("GET", getURL, nil)
 	if err != nil {
 		t.Fatalf("Error creating GET request: %v", err)
