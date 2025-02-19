@@ -1,10 +1,3 @@
-// set CONFIG_PATH=config\local.yaml
-// export DB_HOST=localhost
-// export DB_PORT=5433
-// export DB_USER=myuser
-// export DB_PASSWORD=root
-// export DB_NAME=restdb
-// go run cmd/main.go
 package main
 
 import (
