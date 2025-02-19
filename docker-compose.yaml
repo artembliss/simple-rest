@@ -4,8 +4,13 @@ services:
     image: postgres:14.15-alpine3.20
     restart: always
     environment:
-      POSTGRES_USER: myuser       # Имя пользователя для БД
-      POSTGRES_PASSWORD: root   # Пароль для пользователя
-      POSTGRES_DB: restdb           # Имя создаваемой базы данных
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: restdb
     ports:
-      - "5432:5432"              # Проброс порта: внешний:внутренний
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:

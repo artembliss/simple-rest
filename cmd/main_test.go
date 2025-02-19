@@ -3,9 +3,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"rest-api/internal/domain"
 	"rest-api/internal/http/handlers"
+	"rest-api/internal/lib/storage/postgre"
 	"strconv"
 	"testing"
 
@@ -14,15 +17,20 @@ import (
 
 func setUpRouter() *gin.Engine{
 		// Переводим Gin в режим тестирования для подавления логов.
+		storage, err := postgre.New()
+		if err != nil {
+			log.Fatalf("failed to create storage: %v", err)
+		}
+		defer storage.Close() 
+
 		gin.SetMode(gin.TestMode)
 		router := gin.Default()
-	
 		// Регистрируем те же маршруты, что и в основном приложении.
-		router.GET("/items", handlers.GetItemsHandler)
-		router.GET("/items/{id}", handlers.GetItemHandler)
-		router.POST("/items", handlers.CreateItemHandler)
-		router.PUT("/items/{id}", handlers.UpdateItemHandler)
-		router.DELETE("/items/{id}", handlers.DeleteItemHandler)
+		router.GET("/items", handlers.GetItemsHandler(storage))
+		router.GET("/items/:id", handlers.GetItemHandler(storage))
+		router.POST("/items", handlers.CreateItemHandler(storage))
+		router.PUT("/items/:id", handlers.UpdateItemHandler(storage))
+		router.DELETE("/items/:id", handlers.DeleteItemHandler(storage))	
 		return router
 }
 
@@ -33,7 +41,7 @@ func TestCreateAndGetItem(t *testing.T) {
 	router := setUpRouter()
 
 	// Создаем новый item для теста.
-	newItem := handlers.Item{Name: "Test Item", Description: "Test Description"}
+	newItem := domain.Item{Name: "Test Item", Description: "Test Description"}
 	jsonValue, err := json.Marshal(newItem)
 	if err != nil {
 		t.Fatalf("Error marshaling JSON: %v", err)
@@ -56,7 +64,7 @@ func TestCreateAndGetItem(t *testing.T) {
 	}
 
 	// Декодируем ответ сервера в структуру Item.
-	var createdItem handlers.Item
+	var createdItem domain.Item
 	err = json.Unmarshal(resp.Body.Bytes(), &createdItem)
 	if err != nil {
 		t.Fatalf("Error unmarshaling response: %v", err)
