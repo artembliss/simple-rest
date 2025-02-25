@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Он собирает все item из хранилища и возвращает их в формате JSON.
 func GetItemsHandler(s *postgre.Storage) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		items, err := s.GetItems()
@@ -21,7 +20,6 @@ func GetItemsHandler(s *postgre.Storage) gin.HandlerFunc {
 	}
 }
 
-// Извлекает параметр id из URL, конвертирует его в число и возвращает item, если он найден.
 func GetItemHandler(s *postgre.Storage) gin.HandlerFunc{
 	return func(c *gin.Context) {
 		var item domain.Item
@@ -44,7 +42,6 @@ func GetItemHandler(s *postgre.Storage) gin.HandlerFunc{
 
 
 
-// Читает JSON-данные из тела запроса, создает новый item, присваивает ему уникальный ID и сохраняет его.
 func CreateItemHandler(s *postgre.Storage) gin.HandlerFunc{
 	return func(c *gin.Context){
 		var item domain.Item
@@ -62,7 +59,6 @@ func CreateItemHandler(s *postgre.Storage) gin.HandlerFunc{
 	} 
 }
 
-// Извлекает id из URL, парсит JSON из запроса, обновляет существующий item и возвращает обновленный объект.
 func UpdateItemHandler(s *postgre.Storage) gin.HandlerFunc{
 	return func(c *gin.Context){
 		var item domain.Item
@@ -89,7 +85,6 @@ func UpdateItemHandler(s *postgre.Storage) gin.HandlerFunc{
 
 
 
-// Извлекает id из URL, проверяет наличие item, удаляет его из хранилища и возвращает статус 204 (No Content).
 func DeleteItemHandler(s *postgre.Storage) gin.HandlerFunc{
 	return func(c *gin.Context){
 		var deletedItem domain.Item

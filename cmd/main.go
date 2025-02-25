@@ -16,7 +16,7 @@ func main() {
     defer storage.Close() 
 
     router := gin.Default()
-    // Передавайте storage в обработчики через контекст или синглтон
+    
     router.GET("/items", handlers.GetItemsHandler(storage))
     router.GET("/items/:id", handlers.GetItemHandler(storage))
     router.POST("/items", handlers.CreateItemHandler(storage))

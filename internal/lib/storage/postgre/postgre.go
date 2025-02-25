@@ -22,25 +22,20 @@ func New() (*Storage, error){
     password, passExists := os.LookupEnv("DB_PASSWORD")
     dbname, dbnameExists := os.LookupEnv("DB_NAME")
 
-    // Проверяем наличие всех необходимых переменных окружения.
     if !hostExists || !portExists || !userExists || !passExists || !dbnameExists {
         return &Storage{}, fmt.Errorf("failed to find env variables")
     }
 
-    // Формирование DSN (Data Source Name) для подключения.
     // sslmode=disable используется для локальной разработки.
     dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
         host, port, user, password, dbname)
     fmt.Println(dsn)
-    // Используем sqlx.Connect для установки подключения.
-    // Функция Connect сразу выполняет проверку (ping) подключения.
     db, err := sqlx.Connect("postgres", dsn)
     if err != nil {
         return &Storage{}, fmt.Errorf("failed storage connection: %w", err)
     }
     fmt.Println("Успешное подключение к PostgreSQL через sqlx!")
 
-    // Пример выполнения SQL-запроса: создание таблицы "items" (если она ещё не существует)
 	createTableQuery := `
     CREATE TABLE IF NOT EXISTS items(
         id SERIAL PRIMARY KEY,
@@ -79,8 +74,8 @@ func (s *Storage) GetItem(id int) (domain.Item, error){
 }
 
 func (s *Storage) CreateItem(item domain.Item) (domain.Item, error){
-    query := `INSERT INTO items(name, description) VALUES($1, $2) RETURNING id`
-    err := s.db.QueryRow(query, item.Name, item.Description).Scan(&item.ID)
+    query := `INSERT INTO items(name, description) VALUES($1, $2) RETURNING id, name, description`
+    err := s.db.QueryRow(query, item.Name, item.Description).Scan(&item.ID, &item.Name, &item.Description)    
     if err != nil {
         return domain.Item{}, fmt.Errorf("failed to create item: %w", err)
     }
@@ -88,8 +83,8 @@ func (s *Storage) CreateItem(item domain.Item) (domain.Item, error){
 }
 
 func (s *Storage) UpdateItem(id int, item domain.Item) (domain.Item, error){
-    query := `UPDATE items SET name = $1, description = $2 WHERE id = $3 RETURNING id`
-    err := s.db.QueryRow(query, item.Name, item.Description, id).Scan(&item.ID)
+    query := `UPDATE items SET name = $1, description = $2 WHERE id = $3 RETURNING id, name, description`
+    err := s.db.QueryRow(query, item.Name, item.Description, id).Scan(&item.ID, &item.Name, &item.Description)
     if err != nil {
         return domain.Item{}, fmt.Errorf("failed to update item: %w", err) 
         }            
@@ -103,7 +98,7 @@ func (s *Storage) DeleteItem(id int) (domain.Item, error){
         return domain.Item{}, fmt.Errorf("failed to get item: %w", err)
     }
 
-    query = "DELETE FROM items WHERE id = $1"
+    query = "DELETE FROM items WHERE id = $1 RETURNING id, name, description"
     if _, err := s.db.Exec(query, id); err != nil{
         return domain.Item{}, fmt.Errorf("failed to delete item: %w", err)     
     }
